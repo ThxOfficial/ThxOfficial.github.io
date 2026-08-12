@@ -275,6 +275,28 @@ a { color: inherit; text-decoration: none; }
   padding: 4px 12px;
 }
 
+/* === Back Link === */
+.back-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.9rem; font-weight: 500;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-bottom: 32px;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+  border-color: var(--amber);
+}
+
+.back-link svg { flex-shrink: 0; }
+
 /* === Category Page === */
 .category-page {
   max-width: 860px;

@@ -9,12 +9,15 @@
   var html = document.documentElement;
 
   /* eraser radius */
-  var eraserInner = 30;   /* fully transparent center */
-  var eraserOuter = 70;   /* fade-to-opaque edge */
+  var eraserInner = 28;   /* fully transparent center */
+  var eraserOuter = 85;   /* fade-to-opaque edge */
 
-  var mouseX = -999, mouseY = -999;
-  var prevX = -999, prevY = -999;
-  var hasEntered = false;
+  /* trail: erased marks fade back (heal) after trailLife ms */
+  var trailLife = 300;      /* how long a mark stays erased before healing */
+  var maxTrailPoints = 80;
+
+  var trail = [];           /* [{x, y, t}] t = performance.now() stamp */
+  var lastX = -999, lastY = -999;
   var topImg = new Image();
   topImg.src = '/pics/2ferrari.jpg';
 
@@ -31,7 +34,8 @@
     ctx.scale(dpr, dpr);
   }
 
-  /* Draw 2ferrari.jpg (cover-fit) as the fresh top layer */
+  /* Draw 2ferrari.jpg (cover-fit) as the fresh top layer.
+     Runs EVERY frame, so any previously erased area is covered again -> heal. */
   function drawFullTop() {
     if (!ctx || !topImg.width) return;
     var rect = hero.getBoundingClientRect();
@@ -43,14 +47,15 @@
     ctx.drawImage(topImg, (w - sw) / 2, (h - sh) / 2, sw, sh);
   }
 
-  /* Erase a soft gradient hole at (x,y) */
-  function eraseAt(x, y) {
+  /* Erase a soft gradient hole at (x,y). alpha 0..1 = how erased right now */
+  function eraseAt(x, y, alpha) {
     if (!ctx) return;
+    if (alpha <= 0.02) return;
     ctx.globalCompositeOperation = 'destination-out';
     var grad = ctx.createRadialGradient(x, y, eraserInner, x, y, eraserOuter);
-    grad.addColorStop(0, 'rgba(0,0,0,1)');      /* fully erase center */
-    grad.addColorStop(0.6, 'rgba(0,0,0,0.7)');   /* mostly erased */
-    grad.addColorStop(1, 'rgba(0,0,0,0)');       /* no erase at edge */
+    grad.addColorStop(0, 'rgba(0,0,0,' + alpha + ')');
+    grad.addColorStop(0.6, 'rgba(0,0,0,' + (0.7 * alpha) + ')');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(x, y, eraserOuter, 0, Math.PI * 2);
@@ -58,44 +63,53 @@
     ctx.globalCompositeOperation = 'source-over';
   }
 
-  /* Erase along the line from prev position to current */
-  function eraseStroke(px, py, cx, cy) {
-    var dx = cx - px, dy = cy - py;
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 1) { eraseAt(cx, cy); return; }
-    var steps = Math.max(1, Math.ceil(dist / 6));
-    for (var i = 0; i <= steps; i++) {
-      var t = i / steps;
-      eraseAt(px + dx * t, py + dy * t);
-    }
-  }
-
   /* ---------- Main render loop ---------- */
-  function render() {
+  function render(now) {
     requestAnimationFrame(render);
+
     if (!ctx || !topImg.width) return;
 
-    /* 1. Redraw the full top image → heals everything previously erased */
+    /* 1. Redraw the full top image -> heals everything from last frame */
     drawFullTop();
 
-    /* 2. Erase only around the current cursor (and its path this frame).
-          Since the top image is re-drawn each frame, spots the cursor has
-          moved away from automatically recover. */
-    if (hasEntered && mouseX >= 0) {
-      if (prevX >= 0) {
-        eraseStroke(prevX, prevY, mouseX, mouseY);
-      } else {
-        eraseAt(mouseX, mouseY);
+    /* 2. Re-erase only the trail marks that are still fresh.
+          Marks older than trailLife are skipped, so they stay healed. */
+    for (var i = trail.length - 1; i >= 0; i--) {
+      var p = trail[i];
+      var age = now - p.t;
+      if (age > trailLife) {
+        trail.splice(i, 1);
+        continue;
       }
-      prevX = mouseX; prevY = mouseY;
+      var alpha = 1 - age / trailLife;
+      eraseAt(p.x, p.y, alpha);
     }
   }
 
   /* ---------- Mouse ---------- */
   function onMouseMove(e) {
     var rect = hero.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    var now = performance.now();
+
+    /* stamp trail marks along the movement path (interpolated) */
+    if (lastX < 0) {
+      trail.push({ x: x, y: y, t: now });
+    } else {
+      var dx = x - lastX, dy = y - lastY;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var steps = Math.max(1, Math.ceil(dist / 6));
+      for (var i = 0; i <= steps; i++) {
+        trail.push({
+          x: lastX + (dx * i) / steps,
+          y: lastY + (dy * i) / steps,
+          t: now
+        });
+      }
+    }
+    while (trail.length > maxTrailPoints) trail.shift();
+    lastX = x; lastY = y;
 
     if (cursorDot) {
       cursorDot.style.left = e.clientX + 'px';
@@ -104,15 +118,12 @@
   }
 
   function onMouseEnter() {
-    hasEntered = true;
     if (cursorDot) cursorDot.style.display = 'block';
-    prevX = -999; prevY = -999;
   }
 
   function onMouseLeave() {
-    hasEntered = false;
     if (cursorDot) cursorDot.style.display = 'none';
-    prevX = -999; prevY = -999;
+    lastX = -999; lastY = -999;
   }
 
   /* ---------- Theme toggle ---------- */
@@ -186,7 +197,7 @@
 
     if (canvas && ctx) {
       resizeCanvas();
-      render();
+      requestAnimationFrame(render);
     }
   }
 
