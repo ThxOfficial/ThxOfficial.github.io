@@ -13,7 +13,7 @@
   var eraserOuter = 85;   /* fade-to-opaque edge */
 
   /* trail: erased marks fade back (heal) after trailLife ms */
-  var trailLife = 300;      /* how long a mark stays erased before healing */
+  var trailLife = 500;      /* how long a mark stays erased before healing */
   var maxTrailPoints = 80;
 
   var trail = [];           /* [{x, y, t}] t = performance.now() stamp */
