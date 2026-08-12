@@ -9,33 +9,30 @@
   var html = document.documentElement;
 
   /* eraser radius */
-  var eraserInner = 30;   /* fully erased center */
+  var eraserInner = 30;   /* fully transparent center */
   var eraserOuter = 70;   /* fade-to-opaque edge */
 
   var mouseX = -999, mouseY = -999;
-  var hasEntered = false;
   var prevX = -999, prevY = -999;
+  var hasEntered = false;
   var topImg = new Image();
   topImg.src = '/pics/2ferrari.jpg';
 
-  /* ---------- Canvas sizing & init ---------- */
+  /* ---------- Canvas sizing ---------- */
   function resizeCanvas() {
     if (!canvas || !ctx) return;
     var rect = hero.getBoundingClientRect();
     var dpr = window.devicePixelRatio || 1;
-    if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(dpr, dpr);
-      redrawFull();
-    }
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
   }
 
-  /* Draw 2ferrari.jpg (cover-fit) on canvas */
-  function redrawFull() {
+  /* Draw 2ferrari.jpg (cover-fit) as the fresh top layer */
+  function drawFullTop() {
     if (!ctx || !topImg.width) return;
     var rect = hero.getBoundingClientRect();
     var w = rect.width, h = rect.height;
@@ -49,19 +46,16 @@
   /* Erase a soft gradient hole at (x,y) */
   function eraseAt(x, y) {
     if (!ctx) return;
-    ctx.save();
     ctx.globalCompositeOperation = 'destination-out';
-
     var grad = ctx.createRadialGradient(x, y, eraserInner, x, y, eraserOuter);
     grad.addColorStop(0, 'rgba(0,0,0,1)');      /* fully erase center */
     grad.addColorStop(0.6, 'rgba(0,0,0,0.7)');   /* mostly erased */
     grad.addColorStop(1, 'rgba(0,0,0,0)');       /* no erase at edge */
-
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(x, y, eraserOuter, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
   }
 
   /* Erase along the line from prev position to current */
@@ -76,33 +70,48 @@
     }
   }
 
+  /* ---------- Main render loop ---------- */
+  function render() {
+    requestAnimationFrame(render);
+    if (!ctx || !topImg.width) return;
+
+    /* 1. Redraw the full top image → heals everything previously erased */
+    drawFullTop();
+
+    /* 2. Erase only around the current cursor (and its path this frame).
+          Since the top image is re-drawn each frame, spots the cursor has
+          moved away from automatically recover. */
+    if (hasEntered && mouseX >= 0) {
+      if (prevX >= 0) {
+        eraseStroke(prevX, prevY, mouseX, mouseY);
+      } else {
+        eraseAt(mouseX, mouseY);
+      }
+      prevX = mouseX; prevY = mouseY;
+    }
+  }
+
   /* ---------- Mouse ---------- */
   function onMouseMove(e) {
     var rect = hero.getBoundingClientRect();
-    var cx = e.clientX - rect.left;
-    var cy = e.clientY - rect.top;
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
 
-    /* cursor dot */
-    cursorDot.style.left = e.clientX + 'px';
-    cursorDot.style.top = e.clientY + 'px';
-
-    /* erase */
-    if (hasEntered && prevX >= 0) {
-      eraseStroke(prevX, prevY, cx, cy);
+    if (cursorDot) {
+      cursorDot.style.left = e.clientX + 'px';
+      cursorDot.style.top = e.clientY + 'px';
     }
-    prevX = cx; prevY = cy;
-    mouseX = cx; mouseY = cy;
   }
 
   function onMouseEnter() {
     hasEntered = true;
-    cursorDot.style.display = 'block';
+    if (cursorDot) cursorDot.style.display = 'block';
     prevX = -999; prevY = -999;
   }
 
   function onMouseLeave() {
     hasEntered = false;
-    cursorDot.style.display = 'none';
+    if (cursorDot) cursorDot.style.display = 'none';
     prevX = -999; prevY = -999;
   }
 
@@ -175,7 +184,10 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', function () { resizeCanvas(); });
 
-    if (canvas && ctx) { resizeCanvas(); }
+    if (canvas && ctx) {
+      resizeCanvas();
+      render();
+    }
   }
 
   if (topImg.complete) {
