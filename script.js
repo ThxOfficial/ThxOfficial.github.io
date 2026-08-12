@@ -6,12 +6,22 @@
   var navbar = document.getElementById('navbar');
   var navLinks = document.querySelectorAll('.nav-link');
 
-  var spotRadius = 140;
+  /* ---------- Ripple settings ---------- */
+  var ringWidth  = 32;        /* px, thickness of each ripple ring */
+  var maxRadius  = 460;       /* px, max outer radius before ripple dies */
+  var expandSpeed = 240;      /* px / second */
+  var spawnIntervalFast = 0.045;  /* seconds between ripples when moving */
+  var spawnIntervalSlow = 0.3;    /* seconds when stationary */
+  var velThreshold = 3;       /* px/frame below which mouse is "still" */
+
+  var ripples = [];
   var mouseX = -999;
   var mouseY = -999;
-  var targetX = -999;
-  var targetY = -999;
+  var prevX = -999;
+  var prevY = -999;
   var hasEntered = false;
+  var lastSpawnTime = 0;
+  var lastFrameTime = 0;
   var img = new Image();
   img.src = 'pics/monza.jpg';
 
@@ -58,7 +68,7 @@
     }
   }
 
-  /* ---------- Canvas spotlight ---------- */
+  /* ---------- Canvas sizing ---------- */
   function resizeCanvas() {
     if (!canvas || !ctx) return;
     var rect = hero.getBoundingClientRect();
@@ -71,72 +81,107 @@
     ctx.scale(dpr, dpr);
   }
 
-  function drawSpotlight() {
-    /* Loop must continue every frame, even when idle, so the reveal
-       resumes instantly when the mouse re-enters. */
-    requestAnimationFrame(drawSpotlight);
+  /* ---------- Ripple logic ---------- */
+  function spawnRipple(x, y) {
+    ripples.push({
+      x: x,
+      y: y,
+      outerR: 0,
+      age: 0,
+      maxAge: maxRadius / expandSpeed
+    });
+  }
+
+  function updateRipples(dt) {
+    for (var i = ripples.length - 1; i >= 0; i--) {
+      var r = ripples[i];
+      r.age += dt;
+      r.outerR = r.age * expandSpeed;
+      if (r.age > r.maxAge) {
+        ripples.splice(i, 1);
+      }
+    }
+  }
+
+  /* ---------- Canvas draw ---------- */
+  function draw(timestamp) {
+    requestAnimationFrame(draw);
 
     if (!canvas || !ctx) return;
+
+    var now = timestamp / 1000;
+    var dt = lastFrameTime ? Math.min(now - lastFrameTime, 0.1) : 0;
+    lastFrameTime = now;
+
     var rect = hero.getBoundingClientRect();
     var w = rect.width;
     var h = rect.height;
+
+    /* Spawn ripples while mouse is inside hero */
+    if (hasEntered && mouseX >= 0) {
+      var dx = mouseX - prevX;
+      var dy = mouseY - prevY;
+      var vel = Math.sqrt(dx * dx + dy * dy);
+      var interval = vel >= velThreshold ? spawnIntervalFast : spawnIntervalSlow;
+
+      if (now - lastSpawnTime >= interval) {
+        lastSpawnTime = now;
+        spawnRipple(mouseX, mouseY);
+      }
+      prevX = mouseX;
+      prevY = mouseY;
+    }
+
+    updateRipples(dt);
+
+    /* Clear and draw ripples */
     ctx.clearRect(0, 0, w, h);
+    if (ripples.length === 0) return;
 
-    if (!hasEntered || mouseX < 0) return;
+    /* Build clip path: each ripple is an outer CW arc + inner CCW arc → ring.
+       nonzero winding rule means overlapping rings accumulate correctly. */
+    ctx.beginPath();
+    for (var i = 0; i < ripples.length; i++) {
+      var r = ripples[i];
+      ctx.arc(r.x, r.y, r.outerR, 0, Math.PI * 2, false);       /* CW  +1 */
+      var inner = Math.max(0, r.outerR - ringWidth);
+      if (inner > 0) {
+        ctx.arc(r.x, r.y, inner, 0, Math.PI * 2, true);          /* CCW -1 */
+      }
+    }
+    ctx.clip('nonzero');
 
-    var dx = targetX - mouseX;
-    var dy = targetY - mouseY;
-    mouseX += dx * 0.12;
-    mouseY += dy * 0.12;
-
+    /* Draw monza.jpg cover-fit within clipped rings */
     if (img.width > 0) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(mouseX, mouseY, spotRadius, 0, Math.PI * 2);
-      ctx.clip();
-
       var scale = Math.max(w / img.width, h / img.height);
       var sw = img.width * scale;
       var sh = img.height * scale;
       ctx.drawImage(img, (w - sw) / 2, (h - sh) / 2, sw, sh);
-
-      ctx.restore();
     }
-
-    /* Soft edge gradient ring */
-    var grad = ctx.createRadialGradient(mouseX, mouseY, spotRadius - 20, mouseX, mouseY, spotRadius + 30);
-    grad.addColorStop(0, 'rgba(15,23,42,0)');
-    grad.addColorStop(0.5, 'rgba(15,23,42,0)');
-    grad.addColorStop(1, 'rgba(15,23,42,0.95)');
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, w, h);
-    ctx.arc(mouseX, mouseY, spotRadius - 15, 0, Math.PI * 2, true);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.restore();
   }
 
+  /* ---------- Mouse events ---------- */
   function onMouseMove(e) {
     var rect = hero.getBoundingClientRect();
-    targetX = e.clientX - rect.left;
-    targetY = e.clientY - rect.top;
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
   }
 
   function onMouseEnter() {
     hasEntered = true;
     if (mouseX < 0) {
-      mouseX = targetX;
-      mouseY = targetY;
+      mouseX = prevX = targetX || 0;
+      mouseY = prevY = targetY || 0;
     }
+    if (mouseX < 0) mouseX = mouseY = prevX = prevY = 0;
+    lastSpawnTime = 0; /* force immediate first ripple */
   }
 
   function onMouseLeave() {
     hasEntered = false;
   }
 
-  /* ---------- Nav scroll effect ---------- */
+  /* ---------- Scroll ---------- */
   function onScroll() {
     var scrollY = window.scrollY || window.pageYOffset;
     if (scrollY > 40) {
@@ -146,7 +191,6 @@
     }
   }
 
-  /* ---------- Active nav link on scroll ---------- */
   function updateActiveLink() {
     var sections = document.querySelectorAll('section[id]');
     var scrollY = window.scrollY + 100;
@@ -168,37 +212,45 @@
     });
   }
 
+  /* ---------- Windows resize ---------- */
+  function onResize() {
+    resizeCanvas();
+  }
+
   /* ---------- Init ---------- */
   function init() {
     renderContent();
-    if (!hero || !canvas || !ctx) return;
-
-    resizeCanvas();
 
     var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (!isTouchDevice) {
-      hero.addEventListener('mousemove', onMouseMove, { passive: true });
-      hero.addEventListener('mouseenter', onMouseEnter);
-      hero.addEventListener('mouseleave', onMouseLeave);
-    } else {
-      /* Touch: show full reveal bg */
+    if (isTouchDevice) {
+      /* Touch: show monza.jpg full-screen */
       hero.style.cursor = 'auto';
       if (revealBg) {
         revealBg.classList.add('active');
         revealBg.style.opacity = '1';
       }
+    } else {
+      hero.addEventListener('mousemove', onMouseMove, { passive: true });
+      hero.addEventListener('mouseenter', onMouseEnter);
+      hero.addEventListener('mouseleave', onMouseLeave);
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('scroll', updateActiveLink, { passive: true });
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', onResize);
 
     onScroll();
     updateActiveLink();
-    drawSpotlight();
+
+    if (canvas && ctx) {
+      resizeCanvas();
+      requestAnimationFrame(draw);
+    }
   }
 
+  /* renderContent called early so text appears even before image loads */
   renderContent();
+
   if (img.complete) {
     init();
   } else {

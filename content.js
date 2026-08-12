@@ -2,56 +2,55 @@
    站点内容配置 —— 以后添加/修改内容只需编辑本文件
    ============================================= */
 window.SITE = {
-  brand: 'Home',
+  brand: 'THX',
 
-  heroTitle: 'Welcome',
+  heroTitle: '欢迎来到THX的主页',
   heroSubtitle: '移动鼠标查看图片切换效果',
 
-  /* ---------- 分类（首页「分类」卡片） ----------
-     新增分类：复制一组 { icon, title, desc } 即可 */
+  /* ---------- 分类 ----------
+     新增分类：复制一组 { icon, title, desc } 即可
+     icon 为 24×24 线性 SVG 图标路径 */
   categories: [
     {
-      title: '分类一',
-      desc: '这里放分类的描述文字，说明该分类下的内容方向。',
-      icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'
+      title: '笔记',
+      desc: '学习笔记、技术记录与思考',
+      icon: '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>'
     },
     {
-      title: '分类二',
-      desc: '这里放分类的描述文字，说明该分类下的内容方向。',
-      icon: '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>'
+      title: '电影',
+      desc: '观影记录与影评分享',
+      icon: '<rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/>'
     },
     {
-      title: '分类三',
-      desc: '这里放分类的描述文字，说明该分类下的内容方向。',
-      icon: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'
+      title: '音乐剧',
+      desc: '音乐剧观后与推荐',
+      icon: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'
     },
     {
-      title: '分类四',
-      desc: '这里放分类的描述文字，说明该分类下的内容方向。',
-      icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'
+      title: '杂记',
+      desc: '日常随笔与杂谈',
+      icon: '<path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>'
+    },
+    {
+      title: '模玩',
+      desc: '模型、玩具收藏与展示',
+      icon: '<path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'
+    },
+    {
+      title: '收藏夹栏',
+      desc: '实用工具与网站收藏',
+      icon: '<path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>'
     }
   ],
 
-  /* ---------- 文章（「文章」列表） ----------
-     title   : 标题（必填）
-     date    : 日期
-     tag     : 所属分类
-     desc    : 摘要
-     href    : 链接到文章页面（如 post.html 或 #） */
+  /* ---------- 文章 ---------- */
   articles: [
     {
-      title: '示例文章标题',
+      title: '大家好，我叫ThxOfficial，这是我的主页',
       date: '2026-08-12',
-      tag: '分类一',
-      desc: '这里是文章摘要，一两句话介绍内容。',
-      href: '#'
-    },
-    {
-      title: '第二篇示例文章',
-      date: '2026-08-11',
-      tag: '分类二',
-      desc: '这里是文章摘要，一两句话介绍内容。',
-      href: '#'
+      tag: '杂记',
+      desc: '大家好，我叫ThxOfficial，这是我的主页',
+      href: '2026/firstblog/'
     }
   ]
 };
