@@ -2,7 +2,7 @@
   var hero = document.querySelector('.hero-section');
   var revealBg = document.getElementById('revealBg');
   var canvas = document.getElementById('spotlightCanvas');
-  var ctx = canvas.getContext('2d');
+  var ctx = canvas && canvas.getContext('2d');
   var navbar = document.getElementById('navbar');
   var navLinks = document.querySelectorAll('.nav-link');
 
@@ -12,12 +12,55 @@
   var targetX = -999;
   var targetY = -999;
   var hasEntered = false;
-  var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
   var img = new Image();
   img.src = 'pics/monza.jpg';
 
+  /* ---------- Render content from content.js ---------- */
+  function renderContent() {
+    var S = window.SITE;
+    if (!S) return;
+
+    var brand = document.querySelector('.nav-brand');
+    if (brand && S.brand) brand.textContent = S.brand;
+
+    var h1 = document.querySelector('.hero-title');
+    if (h1 && S.heroTitle) h1.textContent = S.heroTitle;
+
+    var sub = document.querySelector('.hero-subtitle');
+    if (sub && S.heroSubtitle) sub.textContent = S.heroSubtitle;
+
+    var grid = document.querySelector('.card-grid');
+    if (grid && S.categories && S.categories.length) {
+      grid.innerHTML = S.categories.map(function (c) {
+        return '<div class="glass-card">' +
+          '<div class="card-icon">' +
+          '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+          c.icon +
+          '</svg></div>' +
+          '<h3>' + c.title + '</h3>' +
+          '<p>' + c.desc + '</p>' +
+          '</div>';
+      }).join('');
+    }
+
+    var list = document.querySelector('.article-list');
+    if (list && S.articles && S.articles.length) {
+      list.innerHTML = S.articles.map(function (a) {
+        var tag = a.tag ? '<span class="article-tag">' + a.tag + '</span>' : '';
+        var desc = a.desc ? '<p>' + a.desc + '</p>' : '';
+        return '<a class="article-row" href="' + (a.href || '#') + '">' +
+          '<div class="article-info">' + tag +
+          '<h3>' + a.title + '</h3>' + desc +
+          '</div>' +
+          '<span class="article-date">' + (a.date || '') + '</span>' +
+          '</a>';
+      }).join('');
+    }
+  }
+
   /* ---------- Canvas spotlight ---------- */
   function resizeCanvas() {
+    if (!canvas || !ctx) return;
     var rect = hero.getBoundingClientRect();
     var dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
@@ -29,6 +72,11 @@
   }
 
   function drawSpotlight() {
+    /* Loop must continue every frame, even when idle, so the reveal
+       resumes instantly when the mouse re-enters. */
+    requestAnimationFrame(drawSpotlight);
+
+    if (!canvas || !ctx) return;
     var rect = hero.getBoundingClientRect();
     var w = rect.width;
     var h = rect.height;
@@ -41,19 +89,19 @@
     mouseX += dx * 0.12;
     mouseY += dy * 0.12;
 
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(mouseX, mouseY, spotRadius, 0, Math.PI * 2);
-    ctx.clip();
+    if (img.width > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(mouseX, mouseY, spotRadius, 0, Math.PI * 2);
+      ctx.clip();
 
-    var scale = Math.max(w / img.width, h / img.height);
-    var sw = img.width * scale;
-    var sh = img.height * scale;
-    var sx = (w - sw) / 2;
-    var sy = (h - sh) / 2;
-    ctx.drawImage(img, sx, sy, sw, sh);
+      var scale = Math.max(w / img.width, h / img.height);
+      var sw = img.width * scale;
+      var sh = img.height * scale;
+      ctx.drawImage(img, (w - sw) / 2, (h - sh) / 2, sw, sh);
 
-    ctx.restore();
+      ctx.restore();
+    }
 
     /* Soft edge gradient ring */
     var grad = ctx.createRadialGradient(mouseX, mouseY, spotRadius - 20, mouseX, mouseY, spotRadius + 30);
@@ -68,8 +116,6 @@
     ctx.fillStyle = grad;
     ctx.fill();
     ctx.restore();
-
-    requestAnimationFrame(drawSpotlight);
   }
 
   function onMouseMove(e) {
@@ -88,7 +134,6 @@
 
   function onMouseLeave() {
     hasEntered = false;
-    revealBg.classList.remove('active');
   }
 
   /* ---------- Nav scroll effect ---------- */
@@ -125,7 +170,8 @@
 
   /* ---------- Init ---------- */
   function init() {
-    if (!hero || !canvas || !revealBg) return;
+    renderContent();
+    if (!hero || !canvas || !ctx) return;
 
     resizeCanvas();
 
@@ -137,8 +183,10 @@
     } else {
       /* Touch: show full reveal bg */
       hero.style.cursor = 'auto';
-      revealBg.classList.add('active');
-      revealBg.style.opacity = '1';
+      if (revealBg) {
+        revealBg.classList.add('active');
+        revealBg.style.opacity = '1';
+      }
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -150,6 +198,7 @@
     drawSpotlight();
   }
 
+  renderContent();
   if (img.complete) {
     init();
   } else {

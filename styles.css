@@ -333,6 +333,59 @@ a {
   line-height: 1.6;
 }
 
+/* === Article List === */
+.article-list {
+  display: flex;
+  flex-direction: column;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.article-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 8px;
+  border-bottom: 1px solid var(--glass-border);
+  transition: padding var(--transition-smooth);
+}
+
+.article-row:hover {
+  padding-left: 20px;
+}
+
+.article-info {
+  min-width: 0;
+}
+
+.article-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.article-info h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.article-info p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.article-date {
+  font-size: 0.85rem;
+  color: var(--slate-400);
+  white-space: nowrap;
+}
+
 /* === Footer === */
 .footer-glass {
   text-align: center;

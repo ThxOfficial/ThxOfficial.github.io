@@ -17,6 +17,7 @@
       <ul class="nav-links">
         <li><a href="#home" class="nav-link active">首页</a></li>
         <li><a href="#categories" class="nav-link">分类</a></li>
+        <li><a href="#articles" class="nav-link">文章</a></li>
       </ul>
     </div>
   </nav>
@@ -46,48 +47,17 @@
       <h2 class="section-title">Categories</h2>
     </div>
     <div class="card-grid">
-      <div class="glass-card">
-        <div class="card-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-          </svg>
-        </div>
-        <h3>Category A</h3>
-        <p>Content description placeholder</p>
-      </div>
-      <div class="glass-card">
-        <div class="card-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <h3>Category B</h3>
-        <p>Content description placeholder</p>
-      </div>
-      <div class="glass-card">
-        <div class="card-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 6v6l4 2"/>
-          </svg>
-        </div>
-        <h3>Category C</h3>
-        <p>Content description placeholder</p>
-      </div>
-      <div class="glass-card">
-        <div class="card-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-        </div>
-        <h3>Category D</h3>
-        <p>Content description placeholder</p>
-      </div>
+      <!-- 分类卡片由 content.js 自动渲染 -->
+    </div>
+  </section>
+
+  <section id="articles" class="section-panel">
+    <div class="section-header">
+      <span class="section-tag">文章</span>
+      <h2 class="section-title">Articles</h2>
+    </div>
+    <div class="article-list">
+      <!-- 文章列表由 content.js 自动渲染 -->
     </div>
   </section>
 
@@ -95,6 +65,7 @@
     <p>&copy; 2026</p>
   </footer>
 
+  <script src="content.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
