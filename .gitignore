@@ -3,7 +3,6 @@
 
 # npm
 node_modules/
-package-lock.json
 
 # Hexo 生成产物（不上传，由 GitHub Actions 自动生成）
 public/
