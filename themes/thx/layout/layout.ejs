@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= page.title ? page.title + ' | ' + config.title : config.title %></title>
+  <%- css('css/styles') %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <%- partial('partial/header') %>
+  <main><%- body %></main>
+  <%- partial('partial/footer') %>
+  <div id="cursor-dot" class="cursor-dot"></div>
+  <%- js('js/script') %>
+</body>
+</html>

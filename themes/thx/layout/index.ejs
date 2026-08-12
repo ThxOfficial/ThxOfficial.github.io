@@ -1,0 +1,62 @@
+<!-- Hero Section -->
+<section id="home" class="hero-section">
+  <div class="hero-bg base-bg"></div>
+  <canvas id="eraserCanvas" class="eraser-canvas"></canvas>
+  <div class="hero-content">
+    <div class="avatar-placeholder">
+      <img src="<%= url_for('pics/avatar.jpg') %>" alt="头像" class="avatar-img">
+    </div>
+    <h1 class="hero-title"><%= theme.hero_title %></h1>
+    <p class="hero-subtitle"><%= theme.hero_subtitle %></p>
+    <div class="hero-scroll-hint">
+      <span class="scroll-arrow"></span>
+    </div>
+  </div>
+</section>
+
+<!-- Categories -->
+<section id="categories" class="section-panel">
+  <div class="section-header">
+    <span class="section-tag">分类</span>
+    <h2 class="section-title">Categories</h2>
+  </div>
+  <div class="card-grid">
+    <% var catData = site.data.categories || [];
+       var countMap = {};
+       site.categories.each(function(c){ countMap[c.name] = c.posts.length; });
+       catData.forEach(function(c){ %>
+      <a class="glass-card category-card" href="<%= url_for('/categories/' + c.title + '/') %>">
+        <div class="card-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><%- c.icon %></svg>
+        </div>
+        <h3><%= c.title %></h3>
+        <p><%= c.desc %></p>
+        <span class="category-count-badge"><%= countMap[c.title] || 0 %> 篇文章</span>
+      </a>
+    <% }); %>
+  </div>
+</section>
+
+<!-- Articles -->
+<section id="articles" class="section-panel">
+  <div class="section-header">
+    <span class="section-tag">文章</span>
+    <h2 class="section-title">Articles</h2>
+  </div>
+  <div class="article-list">
+    <% site.posts.sort('date', -1).forEach(function(post){ %>
+    <a class="article-row" href="<%= url_for(post.path) %>">
+      <div class="article-info">
+        <% if (post.categories && post.categories.length) { %>
+          <% post.categories.forEach(function(cat){ %>
+            <span class="article-tag"><a href="<%= url_for(cat.path) %>"><%= cat.name %></a></span>
+          <% }); %>
+        <% } %>
+        <h3><%= post.title %></h3>
+        <% if (post.excerpt) { %><p><%= post.excerpt %></p><% } %>
+      </div>
+      <span class="article-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+    </a>
+    <% }); %>
+  </div>
+</section>

@@ -1,0 +1,26 @@
+<% var catName = (typeof page.category === 'string' && page.category) || page.name || (page.title || ''); %>
+<section class="category-page">
+  <div class="category-header">
+    <span class="section-tag">分类</span>
+    <h1 class="post-title"><%= catName %></h1>
+    <p class="category-count">
+      <%= page.posts && page.posts.length ? page.posts.length : 0 %> 篇文章
+    </p>
+  </div>
+
+  <div class="article-list">
+    <% if (page.posts && page.posts.length) { %>
+      <% page.posts.sort('date', -1).forEach(function(post){ %>
+        <a class="article-row" href="<%= url_for(post.path) %>">
+          <div class="article-info">
+            <h3><%= post.title %></h3>
+            <% if (post.excerpt) { %><p><%= post.excerpt %></p><% } %>
+          </div>
+          <span class="article-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+        </a>
+      <% }); %>
+    <% } else { %>
+      <div class="empty-hint">该分类暂无文章</div>
+    <% } %>
+  </div>
+</section>

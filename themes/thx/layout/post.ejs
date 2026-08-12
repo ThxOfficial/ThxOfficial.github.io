@@ -1,0 +1,14 @@
+<article class="post-container">
+  <div class="post-header">
+    <% if (page.categories && page.categories.length) { %>
+      <% page.categories.forEach(function(cat){ %>
+        <span class="post-category-tag"><%= cat.name %></span>
+      <% }); %>
+    <% } %>
+    <h1 class="post-title"><%= page.title %></h1>
+    <time class="post-date"><%= date(page.date, 'YYYY-MM-DD') %></time>
+  </div>
+  <div class="post-body">
+    <%- page.content %>
+  </div>
+</article>
