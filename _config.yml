@@ -23,7 +23,9 @@ archive_dir: archives
 category_dir: categories
 code_dir: downloads/code
 i18n_dir: :lang
-skip_render: '2026/**'
+skip_render:
+  - '2026/**'
+  - 'sancai-studio/**/*'
 
 new_post_name: :title.md
 default_layout: post
